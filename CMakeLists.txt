@@ -1,13 +1,32 @@
 cmake_minimum_required(VERSION 3.4...3.18)
 project(cmake_example)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 
 add_subdirectory(boost-cmake)
 add_subdirectory(pybind11)
-pybind11_add_module(pointcloudqueries src/main.cpp)
+
+add_library(pointcloudqueries MODULE src/main.cpp)
+
+target_link_libraries(pointcloudqueries PRIVATE pybind11::module pybind11::lto pybind11::windows_extras Boost::boost)
+
+pybind11_extension(pointcloudqueries)
+if(NOT MSVC AND NOT ${CMAKE_BUILD_TYPE} MATCHES Debug|RelWithDebInfo)
+    # Strip unnecessary sections of the binary on Linux/macOS
+    pybind11_strip(pointcloudqueries)
+endif()
+
+set_target_properties(pointcloudqueries PROPERTIES CXX_VISIBILITY_PRESET "hidden"
+                                         CUDA_VISIBILITY_PRESET "hidden")
+
+
+
+
 
 # EXAMPLE_VERSION_INFO is defined by setup.py and passed into the C++ code as a
 # define (VERSION_INFO) here.
-target_compile_definitions(pointcloudqueries
-                           PRIVATE VERSION_INFO=${EXAMPLE_VERSION_INFO})
+#target_compile_definitions(pointcloudqueries
+#                           PRIVATE VERSION_INFO=${EXAMPLE_VERSION_INFO})
 			   
