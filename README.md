@@ -34,4 +34,12 @@ easy.
 - py setup.py develop
 - py test.py
 
-
+### On Linux
+We go for manylinux with 
+```
+$ docker run -it --rm  -v $PWD:/io quay.io/pypa/manylinux2014_x
+# cd io/
+# /opt/python/cp37-cp37m/bin/python setup.py bdist_wheel
+# auditwheel repair pointcloudqueries-0.0.1-cp38-cp38-linux_x86_64.whl
+```
+The wheelhouse contains a manylinux-wheel
