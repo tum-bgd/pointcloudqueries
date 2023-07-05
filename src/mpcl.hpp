@@ -1,5 +1,4 @@
-/*(c) 2018 Martin Werner
- ALL RIGHTS RESERVED
+/*(c) 2018 - 2023 Martin Werner
 */
 #ifndef PCL_INCLUDE
 #define PCL_INCLUDE
@@ -14,28 +13,6 @@
 #include <boost/graph/random.hpp>
 #include <boost/graph/reverse_graph.hpp>
 #include <boost/graph/graph_utility.hpp>
-
-//#define HAVE_HDF5
-
-/*
-This has been stripped for the demo for my colleagues. More functionaly has been there.
-
- */
-
-using namespace boost;
-
-typedef float cost;
-typedef adjacency_list<vecS, vecS, bidirectionalS> graph_t; // property<vertex_color_t,default_color_type>,    property<edge_weight_t, cost, property<edge_index_t,size_t>>
-
-//typedef property_map<graph_t, edge_weight_t>::type WeightMap;
-//typedef property_map<graph_t, vertex_color_t>::type ColorMap;
-//typedef color_traits<property_traits<ColorMap>::value_type> Color;
-//typedef property_map<graph_t, edge_index_t>::type IndexMap;
-typedef graph_t::vertex_descriptor vertex_descriptor;
-typedef graph_t::edge_descriptor edge_descriptor;
-typedef graph_t::vertex_iterator vertex_iterator;
-
-
 #include <boost/geometry.hpp>
 #include <boost/geometry/geometries/register/point.hpp>
 #include <boost/geometry/geometries/point.hpp>
@@ -51,9 +28,35 @@ typedef graph_t::vertex_iterator vertex_iterator;
 #include <boost/range/adaptor/transformed.hpp>
 #include <boost/function_output_iterator.hpp>
 
+// related to X11 #define clashing with Eigen's enum value Success
+#ifdef Success
+  #undef Success
+#endif
+#include <Eigen/Dense>
+#include <Eigen/Eigenvalues>
+	  
+using Eigen::MatrixXd;
+
+
+using namespace boost;
+
+
+
 
 namespace bg = boost::geometry;
 namespace bgi = boost::geometry::index;
+
+
+typedef float cost;
+typedef adjacency_list<vecS, vecS, bidirectionalS> graph_t; // property<vertex_color_t,default_color_type>,    property<edge_weight_t, cost, property<edge_index_t,size_t>>
+
+//typedef property_map<graph_t, edge_weight_t>::type WeightMap;
+//typedef property_map<graph_t, vertex_color_t>::type ColorMap;
+//typedef color_traits<property_traits<ColorMap>::value_type> Color;
+//typedef property_map<graph_t, edge_index_t>::type IndexMap;
+typedef graph_t::vertex_descriptor vertex_descriptor;
+typedef graph_t::edge_descriptor edge_descriptor;
+typedef graph_t::vertex_iterator vertex_iterator;
 
 
 struct flat_point3{
@@ -64,11 +67,10 @@ template<typename Q>
 flat_point3( Q& p){x = p.x; y = p.y; z=0;}
 };
 
-struct flat_point2
+struct flat_point2: public flat_point3
 {
-double x,y,z;
 flat_point2(){}
-flat_point2(double _x,double  _y):x(_x),y(_y){};
+flat_point2(double _x,double  _y):flat_point3(x,y,0){};
 template<typename Q>
 flat_point2( Q& p){x = p.x; y = p.y;}
 };
@@ -288,9 +290,6 @@ class ZonalKeyMulti
 
 namespace mpcl{
 
-  /*
-Features based on Eigenvalues need the Eigen library which I did not have on my Windows host
-Can be added rather easily (by administrative tasks
     
 struct tensor_features
 {
@@ -320,7 +319,7 @@ struct tensor_features
 
 
 
-  */
+  
   template<typename T>
   struct notmyself {
     T myself;
@@ -339,9 +338,9 @@ class pointcloud
       std::vector<point> cloud;
       std::vector<unsigned> classes;
       std::vector<float> certainty;
-  //  std::vector<std::vector<double>> features;
-  //    std::vector<std::tuple<unsigned char, unsigned char, unsigned char>> color;
-  //  std::map<unsigned, std::tuple<float,float,float>> colormap;
+      std::vector<std::vector<double>> features;
+      std::vector<std::tuple<unsigned char, unsigned char, unsigned char>> color;
+      std::map<unsigned, std::tuple<float,float,float>> colormap;
       graph_t g;
 
       rtree3 rt;
@@ -377,9 +376,7 @@ class pointcloud
    void buildIndex(){
 	rt = rtree3(cloud | boost::adaptors::indexed()
                     | boost::adaptors::transformed(value_maker3()));
-   
-//	rt = rtree(cloud.begin(), cloud.end());
-   }
+      }
 
   std::vector<double> nndistancemap()
   {
@@ -455,9 +452,11 @@ class pointcloud
 
     }
     
-   
+   */
 
-   void extractKNN(size_t k=6)
+   
+   
+   void compute_structuretensorfeatures(size_t k=6)
    {
       features.clear();
       // our first basic extractor: for each point, extract kNN, extract features from it and write to CSV
@@ -502,7 +501,7 @@ class pointcloud
 
    }
    
-  */
+  
 
 };
 
