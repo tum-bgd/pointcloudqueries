@@ -13,7 +13,7 @@ print(pcl[:10,:])
 print("Random Generation: %s" %(str(time.time()-start)))
 
 
-x = pointcloudqueries.pointcloud()
+x = pointcloudqueries.pointcloud3d()
 
 
 start = time.time()
@@ -25,7 +25,8 @@ x.index();
 print("Indexing (1time): %s" %(str(time.time()-start)))
 
 start = time.time()
-distancemap = x.nndistancemap();
-print("Distance Map: %s" %(str(time.time()-start)))
+distancemap = x.knn_radius("knn70", 70);
+print("kNN Radius: %s" %(str(time.time()-start)))
 
-
+radii = x.get_attrib("knn70")
+print(radii)
