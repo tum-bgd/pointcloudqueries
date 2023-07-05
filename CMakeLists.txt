@@ -5,12 +5,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 
+find_package (Eigen3 3.3 REQUIRED NO_MODULE)
+
 add_subdirectory(boost-cmake)
 add_subdirectory(pybind11)
 
 add_library(pointcloudqueries MODULE src/main.cpp)
 
-target_link_libraries(pointcloudqueries PRIVATE pybind11::module pybind11::lto pybind11::windows_extras Boost::boost)
+target_link_libraries(pointcloudqueries PRIVATE pybind11::module pybind11::lto pybind11::windows_extras Boost::boost Eigen3::Eigen)
 
 pybind11_extension(pointcloudqueries)
 if(NOT MSVC AND NOT ${CMAKE_BUILD_TYPE} MATCHES Debug|RelWithDebInfo)
