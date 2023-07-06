@@ -47,6 +47,12 @@ if __name__=="__main__":
     print("Eigenfeatures: %s" %(str(time.time()-start)))
     print(x.get_attrib("test_linearity"))
 
+
+    start = time.time()
+    distancemap = x.knn_radius("knn7", 7);
+    print("kNN Radius: %s" %(str(time.time()-start)))
+
+    
     if os.environ.get('PCL_BENCHMARK_NOVISUALIZATION') is None:
         import matplotlib.cm
         
