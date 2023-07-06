@@ -120,7 +120,6 @@ class pointcloud{
 	    rt.query(bgi::nearest(p,k), boost::make_function_output_iterator([&](value_type const& v) {
                 if (i == v.second) return;
 		double _d = bg::distance(cloud[i], cloud[v.second]);
-		#pragma omp critical
 		if (_d > d)
 		  d = _d;
  	    }));
