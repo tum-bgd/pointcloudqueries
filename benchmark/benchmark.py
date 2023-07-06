@@ -6,6 +6,8 @@ import pointcloudqueries
 import time
 import numpy as np
 import sys
+import os
+
 class DownloadProgressBar(tqdm):
     def update_to(self, b=1, bsize=1, tsize=None):
         if tsize is not None:
