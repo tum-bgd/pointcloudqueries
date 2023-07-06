@@ -22,7 +22,7 @@ def download_url(url, output_path):
 
 if __name__=="__main__":
     download_url("https://api.bgd.ed.tum.de/datasets/pointclouds/eth.h5", "eth.h5")
-    points = h5py.File("eth.h5")["eth"]["coords"][:100000]
+    points = h5py.File("eth.h5")["eth"]["coords"]
     print(points.shape)
 
     x = pointcloudqueries.pointcloud3d()
