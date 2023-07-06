@@ -1,9 +1,11 @@
 /*
 A redesign of MPCL for better utilization of floats and using local types
 */
+#define MPCL_USE_EIGEN
 
 #include<unordered_map>
 
+#include<iostream> //debug only
 
 #include <boost/geometry.hpp>
 #include <boost/range.hpp>
@@ -79,6 +81,8 @@ class pointcloud{
   typedef bg::model::multi_polygon<polygon_type> multipolygon_type; 
   typedef bg::model::linestring<point_type> linestring_type;
   typedef std::pair<box_type, unsigned> value_type;
+  /*Attributes*/
+  typedef std::unordered_map<std::string, std::vector<double>> named_attrib_type;
 
   /* An indexing engine */
   typedef bgi::rtree< value_type, bgi::rstar<16, 4> > rtree_type;	
@@ -124,6 +128,54 @@ class pointcloud{
 	}
 	return ref_attrib;
     };
+
+
+    void map_kNN_features(size_t k, std::string prefix)
+    {
+       // this function runs a functional for each kNN neighborhood of each point
+	static tensor_features tf;
+        for (size_t j=0; j < tf.names.size(); j++)
+	  named_attributes[prefix+"_"+tf.names[j]]=std::vector<double> (cloud.size());
+    
+       size_t computed = 0;   
+       #pragma omp parallel for
+      for (size_t i=0; i< cloud.size(); i++)
+      {
+	  // compute neighbors
+	  if (computed % 10000 == 0)
+	  #pragma omp critical
+              std::cout << computed << "/" << cloud.size() <<  "(" << (double)computed/cloud.size() << ")" << "\r";
+	#pragma omp atomic
+	  computed ++;
+	  
+          const point_type &p =  cloud[i];
+	  multipoint_type neighbors;
+	  neighbors.push_back(p);
+	  rt.query(bgi::nearest(p,k), boost::make_function_output_iterator([&neighbors](value_type const& v) {neighbors.push_back(v.first.min_corner()); }));
+	  point_type neighbors_centroid;
+	  bg::centroid(neighbors,neighbors_centroid);
+	
+	  MatrixXd mp(k,3);
+	  for (size_t i = 0; i < k; i++)  // assert cloud.size() > k
+	  {
+	      mp(i,0) = bg::get<0>(neighbors[i]) - bg::get<0>( neighbors_centroid);
+	      mp(i,1) = bg::get<1>(neighbors[i])- bg::get<1>( neighbors_centroid);
+	      mp(i,2) = bg::get<2>(neighbors[i])- bg::get<2>( neighbors_centroid);
+	  }
+	  mp = mp.transpose() * mp;
+	  Eigen::SelfAdjointEigenSolver<MatrixXd> solver (mp,false);
+	  auto ev = solver.eigenvalues().reverse();
+	  ev = ev / ev.sum();
+
+	  auto features = tf(ev);
+	  for (size_t j=0; j < features.size(); j++)
+	  {
+	      named_attributes[prefix+"_"+tf.names[j]][i] =features[j];
+	  }
+      } // endfor
+       
+
+    }
 
     /* extractKNN */
    /*void extractKNN(size_t k=6)
@@ -177,7 +229,7 @@ class pointcloud{
    /* Data Section*/
     std::vector<point_type> cloud;
  private:
-      std::unordered_map<std::string, std::vector<double>> named_attributes;
+      named_attrib_type named_attributes;
       rtree_type rt;
       point_type center;
       box_type bounds;
