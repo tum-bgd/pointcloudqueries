@@ -25,8 +25,14 @@ x.index();
 print("Indexing (1time): %s" %(str(time.time()-start)))
 
 start = time.time()
-distancemap = x.knn_radius("knn70", 70);
+distancemap = x.knn_radius("knn7", 7);
 print("kNN Radius: %s" %(str(time.time()-start)))
 
-radii = x.get_attrib("knn70")
+radii = x.get_attrib("knn7")
 print(radii)
+
+# Eigenfeatures
+start = time.time()
+distancemap = x.eigenfeatures("test", 7);
+print("Eigenfeatures: %s" %(str(time.time()-start)))
+print(x.get_attrib("test_linearity"))
