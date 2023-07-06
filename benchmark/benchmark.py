@@ -45,7 +45,7 @@ if __name__=="__main__":
     print("Eigenfeatures: %s" %(str(time.time()-start)))
     print(x.get_attrib("test_linearity"))
 
-    if True:
+    if os.environ.get('PCL_BENCHMARK_NOVISUALIZATION') is None:
         import matplotlib.cm
         
         feature="linearity"
