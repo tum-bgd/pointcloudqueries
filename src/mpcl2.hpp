@@ -6,6 +6,7 @@ A redesign of MPCL for better utilization of floats and using local types
 #include<unordered_map>
 
 #include<iostream> //debug only
+#include <type_traits>
 
 #include <boost/geometry.hpp>
 #include <boost/range.hpp>
@@ -31,6 +32,62 @@ namespace bgi = boost::geometry::index;
 
 
 /* Section 1:    Utilities*/
+
+
+/* Sectopm 1.1     Compile-time recursion through dimension with a functor*/
+
+template <int I>
+using int_ = std::integral_constant<int, I>;
+
+//recursive call that iterates the point and calls F on its coordinate
+template <class Point, class F, std::size_t I = 0>
+struct apply {
+
+    static void call(Point& point, F& f) {
+        f(point, int_<I>());
+        apply<Point, F, I+1>::call(point, f);
+    }
+};
+
+//specialisation to end the recursion
+template <class CT, std::size_t DIM, class S, template <class, std::size_t, class> class Point, class F>
+struct apply<Point<CT, DIM, S>, F, DIM> {
+
+    static void call([[maybe_unused]] Point<CT, DIM, S>& point,[[maybe_unused]]  F& f){
+	
+    }
+};
+
+//interface for calling the function
+template <class Point, class F>
+void apply_functor(Point& point, F& f) {
+    apply<Point, F>::call(point, f);
+}
+
+//example functor
+template <class Point>
+struct add_radius {
+     typedef typename boost::geometry::traits::coordinate_type<Point>::type CoordinateType;
+     CoordinateType r;
+    add_radius(CoordinateType _r): r(_r){};
+    template <class Index>
+    void operator()(Point& point, [[maybe_unused]] Index I) {
+	auto coord_value = bg::get<Index::value>(point)+r;
+	bg::set<Index::value>(point,coord_value);
+    }
+    
+/*  example for specialization
+    void operator()(Point& point, int_<2>) {
+        std::cout << "I am coordinate " << 2 << " and I am specialised with value " << bg::get<2>(point) << std::endl;
+    }
+*/
+};
+
+
+
+/* Section 1.0: Exceptions and Event Classes*/
+
+
 /* Section 1.1:  Structure Tensor Features */
 
 struct tensor_features
@@ -176,54 +233,60 @@ class pointcloud{
 
     }
 
-    /* extractKNN */
-   /*void extractKNN(size_t k=6)
-   {
-      features.clear();
-      // our first basic extractor: for each point, extract kNN, extract features from it and write to CSV
-      tensor_features tf;
-      
+    void map_3drange_features(double radius, std::string prefix)
+    {
+       // this function runs a functional for each kNN neighborhood of each point
+	static tensor_features tf;
+        for (size_t j=0; j < tf.names.size(); j++)
+	  named_attributes[prefix+"_"+tf.names[j]]=std::vector<double> (cloud.size());
+	
+       size_t computed = 0;   
+       #pragma omp parallel for
       for (size_t i=0; i< cloud.size(); i++)
       {
-          if (i % 1000 == 0)
-	     std::cout << i << "/" << cloud.size() << std::endl;
-          const point &p =  cloud[i];
-//	  std::cout << "Extract " << p << std::endl;
-	  multipoint neighbors;
+	  // compute neighbors
+	  if (computed % 10000 == 0)
+	  #pragma omp critical
+              std::cout << computed << "/" << cloud.size() <<  "(" << (double)computed/cloud.size() << ")" << "\r";
+	#pragma omp atomic
+	  computed ++;
+	  
+          const point_type &p =  cloud[i];
+	  multipoint_type neighbors;
 	  neighbors.push_back(p);
-	  rt.query(bgi::nearest(p,k), boost::make_function_output_iterator([&neighbors](value3 const& v) {neighbors.push_back(v.first.min_corner()); }));
-	  point neighbors_centroid;
+	  point_type min_pt=p, max_pt=p;
+	  add_radius<point_type> posadder(radius), negadder(-radius);
+	  apply_functor(min_pt, negadder);
+	  apply_functor(max_pt, posadder);
+	  box_type query_box(min_pt,max_pt);
+//	  std::cout << bg::wkt(query_box.min_corner())<<std::endl;;
+	  rt.query(bgi::intersects(query_box), boost::make_function_output_iterator([&neighbors,radius,&p](value_type const& v) {
+	    if(true)//bg::distance(v.first.min_corner(), p) < radius)
+		neighbors.push_back(v.first.min_corner());
+	  }));
+	  point_type neighbors_centroid;
 	  bg::centroid(neighbors,neighbors_centroid);
-
-//	  for (auto &p: neighbors)
-//	    std::cout << "Neighbor: " << p<<std::endl;
-//	  std::cout << "Center: " << neighbors_centroid << std::endl;
-  
-	  	  
-	  MatrixXd mp(k,3);
-	  for (size_t i = 0; i < k; i++)  // assert cloud.size() > k
+	  MatrixXd mp(neighbors.size(),3);
+	  for (size_t i = 0; i < neighbors.size(); i++)  // assert cloud.size() > k
 	  {
 	      mp(i,0) = bg::get<0>(neighbors[i]) - bg::get<0>( neighbors_centroid);
 	      mp(i,1) = bg::get<1>(neighbors[i])- bg::get<1>( neighbors_centroid);
 	      mp(i,2) = bg::get<2>(neighbors[i])- bg::get<2>( neighbors_centroid);
 	  }
-//	  std::cout << mp << std::endl;
 	  mp = mp.transpose() * mp;
-//	  std::cout << "--" << std::endl;
-//	  std::cout << mp << std::endl;
-//	  std::cout << "--" << std::endl;
 	  Eigen::SelfAdjointEigenSolver<MatrixXd> solver (mp,false);
 	  auto ev = solver.eigenvalues().reverse();
 	  ev = ev / ev.sum();
 
-	  features.push_back(tf(ev));
- 
+	  auto features = tf(ev);
+	  for (size_t j=0; j < features.size(); j++)
+	  {
+	      named_attributes[prefix+"_"+tf.names[j]][i] =features[j];
+	  }
       } // endfor
+       
 
-   }*/
-
-
-
+    }
       
    /* Data Section*/
     std::vector<point_type> cloud;

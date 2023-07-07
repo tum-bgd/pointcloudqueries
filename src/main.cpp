@@ -37,8 +37,11 @@ void register_class_with_name(module_type m, std::string name)
        return py::array_t<double>(result.size(), result.data()); 
 
     })
-    .def("eigenfeatures",[](pointcloud_type &self, std::string prefix, int k){
+    .def("eigenfeatures_knn",[](pointcloud_type &self, std::string prefix, int k){
 	self.map_kNN_features(k, prefix);
+    })
+    .def("eigenfeatures_range",[](pointcloud_type &self, std::string prefix, double r){
+	self.map_3drange_features(r, prefix);
     })
 
 
