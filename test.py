@@ -33,6 +33,6 @@ print(radii)
 
 # Eigenfeatures
 start = time.time()
-distancemap = x.eigenfeatures("test", 7);
+distancemap = x.eigenfeatures_knn("test", 7);
 print("Eigenfeatures: %s" %(str(time.time()-start)))
 print(x.get_attrib("test_linearity"))
