@@ -21,7 +21,7 @@ ENV PCL_BENCHMARK_NOVISUALIZATION=1
 
 # The add will invalidate all subsequent steps if the latest_commit has changed. Nice!
 ADD "https://api.github.com/repos/tum-bgd/pointcloudqueries/commits?per_page=1" latest_commit
-RUN git clone --recurse-submodules https://github.com/xdrl1/pointcloudqueries.git
+RUN git clone --recurse-submodules https://github.com/tum-bgd/pointcloudqueries.git
 WORKDIR /pointcloudqueries
 RUN python3 setup.py bdist_wheel
 RUN pip install dist/*
