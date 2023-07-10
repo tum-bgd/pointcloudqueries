@@ -43,3 +43,4 @@ $ docker run -it --rm  -v $PWD:/io quay.io/pypa/manylinux2014_x
 # auditwheel repair pointcloudqueries-0.0.1-cp38-cp38-linux_x86_64.whl
 ```
 The wheelhouse contains a manylinux-wheel
+docker run -it --rm mwernerds/pointcloudqueries python3 benchmark/benchmark.py
