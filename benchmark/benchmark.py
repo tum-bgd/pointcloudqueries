@@ -12,6 +12,7 @@ dataset="oakland_3d"
 if len(sys.argv) > 1:
     dataset=sys.argv[1]
 
+
 class DownloadProgressBar(tqdm):
     def update_to(self, b=1, bsize=1, tsize=None):
         if tsize is not None:
@@ -26,8 +27,13 @@ def download_url(url, output_path):
 
 # todo: update eth to flat
 if __name__=="__main__":
-    download_url("https://api.bgd.ed.tum.de/datasets/pointclouds/%s.h5"%(dataset), "%s.h5"%(dataset))
-    points = h5py.File("%s.h5"%(dataset))["coords"]
+    if not os.path.exists(dataset):
+        print("Remote download")
+        download_url("https://api.bgd.ed.tum.de/datasets/pointclouds/%s.h5"%(dataset), "%s.h5"%(dataset))
+        points = h5py.File("%s.h5"%(dataset))["coords"]
+    else:
+        print("Loading locally")
+        points = h5py.File(dataset)["coords"]
     print(points.shape)
 
     x = pointcloudqueries.pointcloud3d()
