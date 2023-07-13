@@ -119,6 +119,40 @@ struct tensor_features
 
 /* Section 1.2: Output Helper (empty as templating needs to recurse on dimension)*/
 
+/* Section 1.3: Function that are only reaosonable in selected dimensions*/
+
+template<typename pointcloud>
+void  boxfilter_4d(pointcloud &pcl,
+		    std::string prefix, double radius, double time_radius)
+{
+   std::cout << "This is only available in 4D" << prefix+"_boxfilter4d";
+   pcl.named_attributes[prefix+"_boxfilter4d"] = std::vector<double>(pcl.cloud.size());
+   auto &a = pcl.named_attributes[prefix + "_boxfilter4d"];
+   auto & cloud = pcl.cloud;
+   #pragma omp parallel for
+   
+   for (size_t i=0; i< cloud.size(); i++)
+   {
+       typename pointcloud::point_type minPoint, maxPoint;
+       bg::set<0>(minPoint, bg::get<0> (cloud[i]) - radius);
+       bg::set<1>(minPoint, bg::get<1> (cloud[i]) - radius);
+       bg::set<2>(minPoint, -std::numeric_limits<double>::infinity());
+       bg::set<3>(minPoint, bg::get<3> (cloud[i]) - time_radius);
+       bg::set<0>(maxPoint, bg::get<0> (cloud[i]) + radius);
+       bg::set<1>(maxPoint, bg::get<1> (cloud[i]) + radius);
+       bg::set<2>(maxPoint, std::numeric_limits<double>::infinity());
+       bg::set<3>(maxPoint, bg::get<3> (cloud[i]) + time_radius);
+//       std::cout << bg::wkt(minPoint) << "==>" << bg::wkt(maxPoint) << std::endl;
+       typename pointcloud::box_type query_box(minPoint,maxPoint);
+       double sum, N; // todo: replace with more stable accumulator
+       pcl.rt.query(bgi::intersects(query_box), boost::make_function_output_iterator([&](typename pointcloud::value_type const& v) {
+       N++;
+       sum += bg::get<2>(v.first.min_corner()); // z coordinate
+       }));
+       double mean = sum/N;
+       a[i] = mean;
+   }
+}
 
 /* Section 2: The Point Cloud Class */
 
@@ -290,9 +324,8 @@ class pointcloud{
       
    /* Data Section*/
     std::vector<point_type> cloud;
- private:
+ rtree_type rt;
       named_attrib_type named_attributes;
-      rtree_type rt;
       point_type center;
       box_type bounds;
 };

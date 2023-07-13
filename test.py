@@ -1,20 +1,40 @@
 import numpy as np
 import pointcloudqueries
 import time
+import sys
 class cfg:
-    N=500000
+    N=5000000
     
     
 
 start = time.time()
 pcl = np.random.rand(cfg.N,3)
+pcl4 = np.random.rand(cfg.N,4)
 print(pcl.shape)
 print(pcl[:10,:])
 print("Random Generation: %s" %(str(time.time()-start)))
 
 
 x = pointcloudqueries.pointcloud3d()
+x.add(pcl);
+print("4D")
+y = pointcloudqueries.pointcloud4d()
+y.add(pcl4)
+y.index()
+start = time.time()
+y.boxfilter_4d("box",0.1, 0.4);
+print("Boxfilter: %s" %(str(time.time()-start)))
 
+print("Attributes: " ,y.attributes());
+#import scipy.stats
+#radii = y.get_attrib("box_boxfilter4d")
+#from matplotlib import pyplot as plt
+#plt.scatter(pcl4[:,3], radii)
+#plt.savefig("/var/www/html/plot.png")
+
+
+print(scipy.stats.describe(radii))
+sys.exit(0)
 
 start = time.time()
 x.add(pcl) # note this needs to be packed, sometimes you might to use numpy copy when you have sliced from some unaligned data
