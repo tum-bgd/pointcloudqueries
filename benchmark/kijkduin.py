@@ -13,28 +13,46 @@ import sys
 #
 
 import time
-    
+import json
+
 if __name__=="__main__":
+    report={
+        "file": "kijkduin-flat.h5",
+        "query": "boxfilter4d"
+        }
+    
     pcl = pointcloudqueries.pointcloud4d()
     f = h5py.File("/data/kijkduin-flat.h5")
-    print([x for x in f])
     
+    report["numpts"] = np.random.randint(0,f["coords"].shape[0])
+    select = slice(0, report["numpts"],1)
+    print("Selection: %s " % (str(select)))
     start = time.time()
     print("Reading")
-    cloud = np.hstack([f["coords"][:100,:],f["time"][:100]])
-    print(cloud.shape)
-    print("reading: %s" %(str(time.time()-start)))
+    cloud = np.hstack([f["coords"][select,:],f["time"][select]])
+    report["time_read"] = time.time()-start
+    print("PARTIAL:", [x + str(report[x]) for  x in report])
     start=time.time()
     pcl.add(cloud);
-    print("adding: %s" %(str(time.time()-start))),
+    report["time_add"] = time.time()-start
+    print("PARTIAL:", [x + str(report[x]) for  x in report])
+    print("adding: %s" %(time.time()-start)),
     start=time.time()
     pcl.index()
-    print("indexing: %s" %(str(time.time()-start))),
+    report["time_index"] = time.time()-start
+    print("PARTIAL:", [x + str(report[x]) for  x in report])
     start=time.time()
     pcl.boxfilter_4d("filter",0.5, int(168*24*60*60/2));
-    print("boxfilter: %s" %(str(time.time()-start))),
+    report["time_boxfilter"] = time.time()-start
+    print("PARTIAL:", [x + str(report[x]) for  x in report])
     start=time.time()
-    print("attributes", pcl.attributes())    
+    result =  pcl.get_attrib("filter_boxfilter4d")
+    report["time_extract"] = time.time()-start
+    print("COMPLETE:", [x + str(report[x]) for  x in report])
+    print("result.shape", result.shape)
+    print("result.head():" , result[:10])
+    with open("benchmark.json","a") as f:
+        print(json.dumps(report),file=f)
         
     
     
