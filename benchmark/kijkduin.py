@@ -2,6 +2,7 @@ import h5py
 import pointcloudqueries
 import numpy as np
 from tqdm import tqdm
+import sys
 # The Kijkduin is a 4D point cloud with really heavy footprint.
 # This is the classical density function evaluation and not more, but
 # we already load time data for estimating the runtime
@@ -12,31 +13,28 @@ from tqdm import tqdm
 #
 
 import time
-
-class cfg:
-    chunks=int(10e6)
-    debug=True
     
 if __name__=="__main__":
-    x = pointcloudqueries.pointcloud3d()
-    print(cfg.chunks)
-    f = h5py.File("/data/kijkduin-flat.h5") #"#/data/share/pointclouds/kijkduin.h5")
+    pcl = pointcloudqueries.pointcloud4d()
+    f = h5py.File("/data/kijkduin-flat.h5")
+    print([x for x in f])
+    
     start = time.time()
     print("Reading")
-    cloud = f["coords"][:]
+    cloud = np.hstack([f["coords"][:100,:],f["time"][:100]])
+    print(cloud.shape)
     print("reading: %s" %(str(time.time()-start)))
-
-    x.add(cloud);
-    
-#    for i, sliced in tqdm(enumerate(f["time"].iter_chunks())):
-#        time_slice = f["time"][sliced]
-#        points_slice = f["coords"][sliced[0],:]
-#        
-#        x.add(points_slice) # note this needs to be packed, sometimes you might to use numpy copy when you have sliced from some unaligned data    
-#        if i > cfg.chunks:
-#            break
-#print("Adding: %s" %(str(time.time()-start)))
-        
+    start=time.time()
+    pcl.add(cloud);
+    print("adding: %s" %(str(time.time()-start))),
+    start=time.time()
+    pcl.index()
+    print("indexing: %s" %(str(time.time()-start))),
+    start=time.time()
+    pcl.boxfilter_4d("filter",0.5, int(168*24*60*60/2));
+    print("boxfilter: %s" %(str(time.time()-start))),
+    start=time.time()
+    print("attributes", pcl.attributes())    
         
     
     
