@@ -2,6 +2,7 @@ import h5py
 import pointcloudqueries
 import numpy as np
 from tqdm import tqdm
+import sys
 # The Kijkduin is a 4D point cloud with really heavy footprint.
 # This is the classical density function evaluation and not more, but
 # we already load time data for estimating the runtime
@@ -12,31 +13,46 @@ from tqdm import tqdm
 #
 
 import time
+import json
 
-class cfg:
-    chunks=int(10e6)
-    debug=True
-    
 if __name__=="__main__":
-    x = pointcloudqueries.pointcloud3d()
-    print(cfg.chunks)
-    f = h5py.File("/data/kijkduin-flat.h5") #"#/data/share/pointclouds/kijkduin.h5")
+    report={
+        "file": "kijkduin-flat.h5",
+        "query": "boxfilter4d"
+        }
+    
+    pcl = pointcloudqueries.pointcloud4d()
+    f = h5py.File("/data/kijkduin-flat.h5")
+    
+    report["numpts"] = np.random.randint(0,f["coords"].shape[0])
+    select = slice(0, report["numpts"],1)
+    print("Selection: %s " % (str(select)))
     start = time.time()
     print("Reading")
-    cloud = f["coords"][:]
-    print("reading: %s" %(str(time.time()-start)))
-
-    x.add(cloud);
-    
-#    for i, sliced in tqdm(enumerate(f["time"].iter_chunks())):
-#        time_slice = f["time"][sliced]
-#        points_slice = f["coords"][sliced[0],:]
-#        
-#        x.add(points_slice) # note this needs to be packed, sometimes you might to use numpy copy when you have sliced from some unaligned data    
-#        if i > cfg.chunks:
-#            break
-#print("Adding: %s" %(str(time.time()-start)))
-        
+    cloud = np.hstack([f["coords"][select,:],f["time"][select]])
+    report["time_read"] = time.time()-start
+    print("PARTIAL:", [x + str(report[x]) for  x in report])
+    start=time.time()
+    pcl.add(cloud);
+    report["time_add"] = time.time()-start
+    print("PARTIAL:", [x + str(report[x]) for  x in report])
+    print("adding: %s" %(time.time()-start)),
+    start=time.time()
+    pcl.index()
+    report["time_index"] = time.time()-start
+    print("PARTIAL:", [x + str(report[x]) for  x in report])
+    start=time.time()
+    pcl.boxfilter_4d("filter",0.5, int(168*24*60*60/2));
+    report["time_boxfilter"] = time.time()-start
+    print("PARTIAL:", [x + str(report[x]) for  x in report])
+    start=time.time()
+    result =  pcl.get_attrib("filter_boxfilter4d")
+    report["time_extract"] = time.time()-start
+    print("COMPLETE:", [x + str(report[x]) for  x in report])
+    print("result.shape", result.shape)
+    print("result.head():" , result[:10])
+    with open("benchmark.json","a") as f:
+        print(json.dumps(report),file=f)
         
     
     
