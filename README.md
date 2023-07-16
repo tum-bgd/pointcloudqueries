@@ -29,12 +29,15 @@ such that you just need to
 ### On Windows
 
 - Setup a C++ compilation environment
+
   - Install Visual Studio, and use the VS installer to install *Desktop development with C++* module.
   - Install [CMake](https://cmake.org/download/)
 - Install Python
+
   - preferably from python.org, for example, `https://www.python.org/ftp/python/3.11.3/python-3.11.3-amd64.exe` and let it upgrade the py launcher.
   - Try that in a command line `py` runs python3
 - Configure Eigen3 using CMake
+
   - First, go to a directory as your preference, then
     ```
     > git clone https://gitlab.com/libeigen/eigen.git
@@ -42,17 +45,20 @@ such that you just need to
     ```
   - These steps will take care of environmental variables for Eigen compilation
 - Install dependencies for Python
+
   ```
   > py -3.X -m pip install wheel tqdm h5py scipy
   ```
 
   - matplotlib and open3d also needed if visualization required
 - Compile and install the `pointcloudqueries` library
+
   ```
   > py -3.X setup.py bdist_wheel
-  > py -3.X -m pip install ./dist/*.whl
+  > py -3.X -m pip install ./dist/<name-of-the-compiled-wheel>.whl
   ```
 - Run benchmark
+
   ```
   > py -3.X ./benchmark/benchmark.py
   ```
