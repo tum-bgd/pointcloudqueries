@@ -78,13 +78,13 @@ def evaluate_dataset_knn(dataset, knn):
 from matplotlib import pyplot as plt
 
 if __name__=="__main__":
-    plot_data = [(knn,evaluate_dataset_knn("oakland_3d",knn)) for knn in [5,25,50,75]]
+    plot_data = [(knn,evaluate_dataset_knn(sys.argv[1],knn)) for knn in [5,25,50,75]]
     for knn, data in plot_data:
         plt.plot(data[:,0],data[:,1],label="knn=%d" % (knn))
     plt.legend()
     plt.xlabel("query point cloud size")
     plt.ylabel("time")
-    plt.savefig("oakland_3d_knn.png")
+    plt.savefig("%s_knn.png" %(sys.argv[1]))
 
     
     
