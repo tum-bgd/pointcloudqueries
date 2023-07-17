@@ -58,13 +58,24 @@ def evaluate_dataset_knn(dataset, knn):
     start = time.time()
     x.index();
     print("Indexing (1time): %s" %(str(time.time()-start)))
+    print("Calibrating to about %d points" %(knn))
+    distancemap = x.knn_radius("knn", knn);
+    radii = x.get_attrib("knn")
+    print(radii)
+    default_range = np.nanmean(x.get_attrib("knn"))
+    print("Default range for %d points is %.2f" % (knn,default_range))
+
+
+
+    
     plot=[]
     #for iteration in range(20):
     for s in tqdm(slices):
         x.drop_cloud(); # drop the cloud
         x.add (points[s,:]) # add points
         start = time.time()
-        distancemap = x.knn_radius("knn", knn);
+        #distancemap = x.knn_radius("knn", knn);
+        distancemap = x.eigenfeatures_range("test", default_range);
         plot = plot+[[s.stop,time.time()-start]]
 
     plot=np.array(plot)
@@ -72,7 +83,7 @@ def evaluate_dataset_knn(dataset, knn):
  #   from matplotlib import pyplot as plt
  #   plt.plot(plot[:,0],plot[:,1])
 #    plt.show()
-    np.save("result-%s-knn-%04d.json" % (dataset,knn),plot)
+    np.save("result-%s-eigenrange-%04d.json" % (dataset,knn),plot)
     return plot
     
 from matplotlib import pyplot as plt
@@ -84,7 +95,7 @@ if __name__=="__main__":
     plt.legend()
     plt.xlabel("query point cloud size")
     plt.ylabel("time")
-    plt.savefig("oakland_3d_knn.png")
+    plt.savefig("oakland_3d_eigen30.png")
 
     
     
