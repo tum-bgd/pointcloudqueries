@@ -30,6 +30,9 @@ void add_generic_api_functions(classtype cls)
     .def("index",[](pointcloud_type &self){
       self.buildIndex();
     })
+      .def("drop_cloud",[](pointcloud_type &self){
+	self.cloud.clear();
+      })
     .def("knn_radius",[](pointcloud_type &self, std::string name, int k){
         auto ret = self.computeKNNradius(name,k);
     })
