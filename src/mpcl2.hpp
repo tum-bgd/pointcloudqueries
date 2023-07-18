@@ -125,7 +125,7 @@ template<typename pointcloud>
 void  boxfilter_4d(pointcloud &pcl,
 		    std::string prefix, double radius, double time_radius)
 {
-   std::cout << "This is only available in 4D" << prefix+"_boxfilter4d";
+
    pcl.named_attributes[prefix+"_boxfilter4d"] = std::vector<double>(pcl.cloud.size());
    auto &a = pcl.named_attributes[prefix + "_boxfilter4d"];
    auto & cloud = pcl.cloud;
@@ -144,7 +144,7 @@ void  boxfilter_4d(pointcloud &pcl,
        bg::set<3>(maxPoint, bg::get<3> (cloud[i]) + time_radius);
 //       std::cout << bg::wkt(minPoint) << "==>" << bg::wkt(maxPoint) << std::endl;
        typename pointcloud::box_type query_box(minPoint,maxPoint);
-       double sum, N; // todo: replace with more stable accumulator
+       double sum=0, N=0; 
        pcl.rt.query(bgi::intersects(query_box), boost::make_function_output_iterator([&](typename pointcloud::value_type const& v) {
        N++;
        sum += bg::get<2>(v.first.min_corner()); // z coordinate
