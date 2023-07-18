@@ -92,7 +92,7 @@ if __name__=="__main__":
     plt.rcParams.update({'font.size': 14})
     plot_data = [(knn,evaluate_dataset_knn(sys.argv[1],knn)) for knn in [5,25,50,75]]
     for knn, data in plot_data:
-        plt.plot(data[:,0],data[:,1],label="knn=%d" % (knn))
+        plt.plot(data[:,0],data[:,1],label="knn=%d" % (knn), marker='o')
     plt.legend()
     plt.xlabel("query point cloud size")
     plt.ylabel("time [s]")
