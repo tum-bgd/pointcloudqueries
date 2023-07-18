@@ -33,7 +33,7 @@ if __name__=="__main__":
     report["time_read"] = time.time()-start
     print("PARTIAL:", [x + str(report[x]) for  x in report])
     start=time.time()
-    pcl.add(cloud);
+    pcl.add(cloud)
     report["time_add"] = time.time()-start
     print("PARTIAL:", [x + str(report[x]) for  x in report])
     print("adding: %s" %(time.time()-start)),
@@ -42,7 +42,7 @@ if __name__=="__main__":
     report["time_index"] = time.time()-start
     print("PARTIAL:", [x + str(report[x]) for  x in report])
     start=time.time()
-    pcl.boxfilter_4d("filter",0.5, int(168*24*60*60/2));
+    pcl.boxfilter_4d("filter",0.5, int(168*24*60*60/2))
     report["time_boxfilter"] = time.time()-start
     print("PARTIAL:", [x + str(report[x]) for  x in report])
     start=time.time()
