@@ -1,4 +1,5 @@
 # Point Cloud Queries
+
 A Python module for selected point cloud queries
 
 This code is for educational purposes
@@ -15,32 +16,66 @@ It is a NFDI4Earth Educational Resource, more information on https://www.bgd.ed.
 # Installation
 
 ## The plan
+
 When we have fixed the usability and add some documentation, we will build binary distributions for Linux,  Windows and Python >= 3.7 and push it to pypi,
 such that you just need to
+
 ```
-pip install pointcloudqueries # This does not yet work
+> pip install pointcloudqueries # This does not yet work
 ```
 
 ## At the moment
-### On Linux
-easy.
+
 ### On Windows
-- Install Visual Studio
-- Download Boost (boost.org) 1.82 to `c:\boost`, and unpack it and make sure that `C:\boost\boost_1_82_0\boost_1_82_0\boost\geometry" is the directory containing the Boost Geometry Library
-- If you end up with Boost somewhere else, update include_dirs in setup.py
-- Install Python (preferably from python.org, for example, `https://www.python.org/ftp/python/3.11.3/python-3.11.3-amd64.exe` and let it upgrade the py launcher.
-- Try that in a command line `py` runs python3
-- py -m pip install numpy # numpy is a dependency for our package
-- py setup.py develop
-- py test.py
+
+- Setup a C++ compilation environment
+
+  - Install Visual Studio, and use the VS installer to install *Desktop development with C++* module.
+  - Install [CMake](https://cmake.org/download/)
+- Install Python
+
+  - preferably from python.org, for example, `https://www.python.org/ftp/python/3.11.3/python-3.11.3-amd64.exe` and let it upgrade the py launcher.
+  - Try that in a command line `py` runs python3
+- Configure Eigen3 using CMake
+
+  - First, go to a directory as your preference, then
+    ```
+    > git clone https://gitlab.com/libeigen/eigen.git
+    > cd eigen && mkdir build && cd build && cmake ..
+    ```
+  - These steps will take care of environmental variables for Eigen compilation
+- Install dependencies for Python
+
+  ```
+  > py -3.X -m pip install wheel tqdm h5py scipy
+  ```
+
+  - matplotlib and open3d also needed if visualization required
+- Compile and install the `pointcloudqueries` library
+
+  ```
+  > py -3.X setup.py bdist_wheel
+  > py -3.X -m pip install ./dist/<name-of-the-compiled-wheel>.whl
+  ```
+- Run benchmark
+
+  ```
+  > py -3.X ./benchmark/benchmark.py
+  ```
 
 ### On Linux
-We go for manylinux with 
+
+We go for manylinux with
+
 ```
 $ docker run -it --rm  -v $PWD:/io quay.io/pypa/manylinux2014_x
 # cd io/
 # /opt/python/cp37-cp37m/bin/python setup.py bdist_wheel
 # auditwheel repair pointcloudqueries-0.0.1-cp38-cp38-linux_x86_64.whl
 ```
+
 The wheelhouse contains a manylinux-wheel
-docker run -it --rm mwernerds/pointcloudqueries python3 benchmark/benchmark.py
+
+```
+> docker run -it --rm mwernerds/pointcloudqueries python3 benchmark/benchmark.py
+```

@@ -27,13 +27,13 @@ def download_url(url, output_path):
 
 # todo: update eth to flat
 if __name__=="__main__":
-    if not os.path.exists(dataset):
+    if not os.path.exists("%s.h5"%(dataset)):
         print("Remote download")
         download_url("https://api.bgd.ed.tum.de/datasets/pointclouds/%s.h5"%(dataset), "%s.h5"%(dataset))
         points = h5py.File("%s.h5"%(dataset))["coords"]
     else:
         print("Loading locally")
-        points = h5py.File(dataset)["coords"]
+        points = h5py.File("%s.h5"%(dataset))["coords"]
     print(points.shape)
 
     x = pointcloudqueries.pointcloud3d()

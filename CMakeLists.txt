@@ -8,9 +8,15 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
-set(CMAKE_CXX_FLAGS "-Wall -Wextra")
-set(CMAKE_CXX_FLAGS_DEBUG "-g")
-set(CMAKE_CXX_FLAGS_RELEASE "-Ofast -march=native -fopenmp")
+if(MSVC)
+  set(CMAKE_CXX_FLAGS "/Wall /EHsc")
+  set(CMAKE_CXX_FLAGS_DEBUG "/Zi /MTd")
+  set(CMAKE_CXX_FLAGS_RELEASE "/O2 /MT /openmp:llvm")
+else()
+  set(CMAKE_CXX_FLAGS "-Wall -Wextra")
+  set(CMAKE_CXX_FLAGS_DEBUG "-g")
+  set(CMAKE_CXX_FLAGS_RELEASE "-Ofast -march=native -fopenmp")
+endif()
 
 set(CMAKE_VERBOSE_MAKEFILE ON)
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
@@ -39,4 +45,4 @@ set_target_properties(pointcloudqueries PROPERTIES CXX_VISIBILITY_PRESET "hidden
 # define (VERSION_INFO) here.
 #target_compile_definitions(pointcloudqueries
 #                           PRIVATE VERSION_INFO=${EXAMPLE_VERSION_INFO})
-			   
+
