@@ -33,7 +33,7 @@ typedef std::pair<point, size_t> value;
 */
 
 
-struct discretizer : public std::unary_function<size_t, double>
+struct discretizer 
 {
   double vmin, vmax;
   size_t steps;

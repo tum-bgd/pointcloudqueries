@@ -132,11 +132,8 @@ py::array_t<T> create_matrix(size_t width, size_t height, T* data_ptr  = nullptr
 auto mix3 = [](py::array_t<uint32_t,py::array::c_style > points) {
 	
 	auto r = points.unchecked<2>();
-//	size_t shape[2]{static_cast<size_t>(r.shape(0)),1};
-//        size_t strides[2]{static_cast<size_t>(r.shape(0)) * sizeof(uint64_t), sizeof(uint64_t)};
-        auto a = create_matrix<uint32_t>(r.shape(0),1);
+        auto a = create_matrix<uint64_t>(r.shape(0),1);
         auto view = a.mutable_unchecked<2>();
-        std::cout << view.shape(0) << std::endl;
 	for (py::ssize_t i = 0; i < r.shape(0); i++)
 	{
 	  if (r.shape(1) != 3) throw(std::runtime_error("Expect Nx3 matrix"));
@@ -151,6 +148,26 @@ auto mix3 = [](py::array_t<uint32_t,py::array::c_style > points) {
        return a;
     };
 
+auto unmix3 = [](py::array_t<uint64_t,py::array::c_style > indices) {
+  // given z curve indices, unmix to the integer cell
+	auto r = indices.unchecked<2>();
+        auto a = create_matrix<uint32_t>(r.shape(0),3);
+        auto view = a.mutable_unchecked<2>();
+	for (py::ssize_t i = 0; i < r.shape(0); i++)
+	{
+	  if (r.shape(1) != 1) throw(std::runtime_error("Expect Nx1 matrix"));
+	  const int BIT_PER_DIMENSION=16;
+	  std::bitset<BIT_PER_DIMENSION> x,y,z;
+	  demix_from(std::bitset<64> (r(i,0)),x,y,z);
+	  //      return std::make_pair(a.to_ulong(),b.to_ulong());
+
+	  //std::cout << "Accessing "  << i << std::endl;
+	  view(i,0) = static_cast<uint32_t>(x.to_ulong());
+	  view(i,1) = static_cast<uint32_t>(y.to_ulong());
+	  view(i,2) = static_cast<uint32_t>(z.to_ulong());
+	}
+       return a;
+    };
 
 PYBIND11_MODULE(pointcloudqueries, m) {
     register_class_with_name3<pointcloud<double,3>>(m,"pointcloud3d");
@@ -161,6 +178,9 @@ PYBIND11_MODULE(pointcloudqueries, m) {
     register_class_with_name4<pointcloud<float,4>>(m,"pointcloud4f");
     register_class_with_name3<pointcloud<float,5>>(m,"pointcloud5f");
 
-    m.def("mix3", mix3);
+    m
+      .def("mix3", mix3)
+      .def("unmix3", unmix3)
+      ;
 
 }
