@@ -4,18 +4,27 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+if(MSVC)
+  include(c:/vcpkg/vcpkg/scripts/buildsystems/vcpkg.cmake)   
+endif()
+
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
-
+if(MSVC)
+else()
 set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-Ofast -march=native -fopenmp")
+endif()
 
 set(CMAKE_VERBOSE_MAKEFILE ON)
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
-
+if(MSVC)
+find_package (Boost REQUIRED)
+else()
 add_subdirectory(boost-cmake)
+endif()
 add_subdirectory(pybind11)
 
 add_library(pointcloudqueries MODULE src/main.cpp)
